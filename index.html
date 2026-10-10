@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>myCardLimit redirect</title>
+</head>
+<body>
+<p id="msg">Forwarding to the local myCardLimit app&hellip;</p>
+<script>
+// Static helper for the one-off `--link` flow of myCardLimit: Enable Banking
+// only accepts https redirect URLs, but the CLI listens on 127.0.0.1. This
+// page forwards the bank's redirect to that fixed local address. The target
+// is hard-coded (no open redirect) and only the known OAuth parameters are
+// passed on; nothing is sent to any server other than the user's own machine.
+(function () {
+  var TARGET = "http://127.0.0.1:8734/callback";
+  var ALLOWED = ["code", "state", "error", "error_description"];
+  var src = new URLSearchParams(window.location.search);
+  var dst = new URLSearchParams();
+  ALLOWED.forEach(function (k) {
+    if (src.has(k)) dst.set(k, src.get(k));
+  });
+  if (!dst.has("code") && !dst.has("error")) {
+    document.getElementById("msg").textContent =
+      "Nothing to forward: this page is only used as the bank login redirect.";
+    return;
+  }
+  window.location.replace(TARGET + "?" + dst.toString());
+})();
+</script>
+<noscript>JavaScript is required to forward the login result to the local app.</noscript>
+</body>
+</html>
